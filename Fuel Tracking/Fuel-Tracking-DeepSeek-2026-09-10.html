@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FuelTrack — vehicle fuel consumption</title>
+    <!-- Chart.js CDN for the graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', Roboto, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #f4f7fc;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .app-container {
+            max-width: 1200px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #1e2b3a;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.2rem;
+        }
+        h1 span {
+            background: #1e2b3a;
+            color: white;
+            font-size: 1rem;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e2e9f0;
+        }
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1e3a5f;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        @media (max-width: 800px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            margin-bottom: 0.9rem;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .form-row .form-group {
+            flex: 1 0 150px;
+        }
+        label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #2c4a6e;
+            letter-spacing: 0.3px;
+        }
+        input, select {
+            padding: 0.7rem 0.9rem;
+            border: 1.5px solid #cfddee;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: 0.2s;
+            background: #ffffff;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2c6e9c;
+            box-shadow: 0 0 0 3px rgba(44, 110, 156, 0.15);
+        }
+        button {
+            background: #1e3a5f;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        button:hover {
+            background: #0f2b44;
+            transform: translateY(-1px);
+        }
+        button.secondary {
+            background: #e8eef6;
+            color: #1e3a5f;
+            box-shadow: none;
+            border: 1px solid #b8cee4;
+        }
+        button.secondary:hover {
+            background: #d5e0ed;
+        }
+        button.danger {
+            background: #b22234;
+        }
+        button.danger:hover {
+            background: #8f1a2a;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .data-table th {
+            text-align: left;
+            padding: 0.6rem 0.4rem;
+            color: #1e3a5f;
+            font-weight: 600;
+            border-bottom: 1.5px solid #dbe4ef;
+        }
+        .data-table td {
+            padding: 0.6rem 0.4rem;
+            border-bottom: 1px solid #eef3fa;
+            vertical-align: middle;
+        }
+        .data-table tr:hover td {
+            background: #f9fcff;
+        }
+        .badge {
+            background: #d9e7fa;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            display: inline-block;
+        }
+        .chart-container {
+            position: relative;
+            height: 260px;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+        .empty-message {
+            color: #6f7e91;
+            font-style: italic;
+            padding: 1rem;
+            text-align: center;
+        }
+        .hint {
+            font-size: 0.78rem;
+            color: #6f7e91;
+            margin-top: 0.2rem;
+        }
+        .value-highlight {
+            font-weight: 700;
+            color: #1e3a5f;
+        }
+        .action-cell {
+            display: flex;
+            gap: 0.4rem;
+        }
+        .small-btn {
+            padding: 0.3rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 30px;
+        }
+        .file-input-label {
+            background: #e8eef6;
+            border: 1px solid #b8cee4;
+            padding: 0.6rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #1e3a5f;
+            transition: 0.2s;
+        }
+        .file-input-label:hover {
+            background: #d5e0ed;
+        }
+        #importFile {
+            display: none;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+        .status-msg {
+            font-size: 0.85rem;
+            color: #2c6e9c;
+            min-height: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <h1>
+        ⛽ FuelTrack
+        <span>local DB</span>
+    </h1>
+
+    <!-- ========== VEHICLE SETUP / INITIAL READING ========== -->
+    <div class="card" id="setupCard">
+        <div class="panel-title">🚗 Vehicle & initial odometer</div>
+        <div class="form-row">
+            <div class="form-group" style="flex:2;">
+                <label for="setupPlate">License plate</label>
+                <input type="text" id="setupPlate" placeholder="e.g. ABC-123" maxlength="15" autocomplete="off">
+            </div>
+            <div class="form-group" style="flex:1.5;">
+                <label for="setupOdometer">Initial odometer (miles)</label>
+                <input type="number" id="setupOdometer" placeholder="e.g. 15000" step="0.1" min="0">
+            </div>
+            <div class="form-group" style="flex:1; display:flex; align-items:flex-end;">
+                <button id="saveSetupBtn" style="width:100%;">💾 Save vehicle</button>
+            </div>
+        </div>
+        <div class="hint">Each vehicle stores its own initial odometer. Subsequent entries use the last odometer for distance calculation.</div>
+        <div id="setupStatus" class="status-msg"></div>
+    </div>
+
+    <!-- ========== FUEL ENTRY FORM ========== -->
+    <div class="card">
+        <div class="panel-title">⛽ Add fuel record</div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="entryPlate">License plate</label>
+                <select id="entryPlate"></select>
+            </div>
+            <div class="form-group">
+                <label for="entryOdometer">Current odometer (miles)</label>
+                <input type="number" id="entryOdometer" placeholder="e.g. 15420" step="0.1" min="0">
+            </div>
+            <div class="form-group">
+                <label for="entryGallons">Gallons filled</label>
+                <input type="number" id="entryGallons" placeholder="e.g. 10.5" step="0.01" min="0.01">
+            </div>
+            <div class="form-group">
+                <label for="entryCostPerGal">Cost per gallon ($)</label>
+                <input type="number" id="entryCostPerGal" placeholder="e.g. 3.49" step="0.01" min="0.01">
+            </div>
+        </div>
+        <div class="flex-between">
+            <div class="hint">Distance traveled is calculated automatically from previous odometer (or initial reading).</div>
+            <button id="addEntryBtn">➕ Add record</button>
+        </div>
+        <div id="entryStatus" class="status-msg"></div>
+    </div>
+
+    <!-- ========== DATA & GRAPH ========== -->
+    <div class="card">
+        <div class="flex-between" style="margin-bottom: 0.5rem;">
+            <div class="panel-title" style="margin-bottom:0;">📊 Recent records (last 10)</div>
+            <div class="button-group">
+                <button class="secondary" id="exportBtn">📤 Export JSON</button>
+                <label for="importFile" class="file-input-label">📥 Import JSON</label>
+                <input type="file" id="importFile" accept=".json,application/json">
+            </div>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="data-table" id="recordsTable">
+                <thead>
+                    <tr>
+                        <th>Plate</th>
+                        <th>Date</th>
+                        <th>Odometer</th>
+                        <th>Gallons</th>
+                        <th>Cost/gal</th>
+                        <th>Distance</th>
+                        <th>MPG</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- filled dynamically -->
+                </tbody>
+            </table>
+        </div>
+        <div id="noRecordsMsg" class="empty-message">No fuel records yet. Add one above.</div>
+        <div class="chart-container" style="margin-top:1.2rem;">
+            <canvas id="fuelChart"></canvas>
+        </div>
+        <div class="hint" style="text-align:center;">Last 10 records: ⛽ MPG (blue bars) &nbsp;|&nbsp; 📏 distance (green line)</div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- LOCAL DATABASE (using localStorage) ----------
+        const DB_KEY = 'fuel_tracker_db_v1';
+
+        // Default structure: { vehicles: { plate: { initialOdometer, records: [ ... ] } } }
+        // Each record: { id, plate, date, odometer, gallons, costPerGallon, distance, mpg }
+        function loadDB() {
+            const stored = localStorage.getItem(DB_KEY);
+            if (stored) {
+                try {
+                    return JSON.parse(stored);
+                } catch (e) {
+                    console.warn('Failed to parse DB, starting fresh');
+                }
+            }
+            return { vehicles: {} };
+        }
+
+        function saveDB(db) {
+            localStorage.setItem(DB_KEY, JSON.stringify(db));
+        }
+
+        let db = loadDB();
+
+        // ---------- DOM refs ----------
+        const setupPlate = document.getElementById('setupPlate');
+        const setupOdometer = document.getElementById('setupOdometer');
+        const saveSetupBtn = document.getElementById('saveSetupBtn');
+        const setupStatus = document.getElementById('setupStatus');
+
+        const entryPlate = document.getElementById('entryPlate');
+        const entryOdometer = document.getElementById('entryOdometer');
+        const entryGallons = document.getElementById('entryGallons');
+        const entryCostPerGal = document.getElementById('entryCostPerGal');
+        const addEntryBtn = document.getElementById('addEntryBtn');
+        const entryStatus = document.getElementById('entryStatus');
+
+        const tableBody = document.getElementById('tableBody');
+        const noRecordsMsg = document.getElementById('noRecordsMsg');
+        const exportBtn = document.getElementById('exportBtn');
+        const importFile = document.getElementById('importFile');
+
+        let chart = null;
+
+        // ---------- helper functions ----------
+        function getVehicleList() {
+            return Object.keys(db.vehicles);
+        }
+
+        function getLastOdometerForVehicle(plate) {
+            const vehicle = db.vehicles[plate];
+            if (!vehicle) return null;
+            if (vehicle.records && vehicle.records.length > 0) {
+                // records are stored in insertion order; last record's odometer
+                return vehicle.records[vehicle.records.length - 1].odometer;
+            }
+            return vehicle.initialOdometer ?? null;
+        }
+
+        // Calculate distance: current odometer - previous reference (last record odometer or initial)
+        function calculateDistance(plate, currentOdometer) {
+            const vehicle = db.vehicles[plate];
+            if (!vehicle) return null;
+            let previousOdo = null;
+            if (vehicle.records && vehicle.records.length > 0) {
+                previousOdo = vehicle.records[vehicle.records.length - 1].odometer;
+            } else {
+                previousOdo = vehicle.initialOdometer;
+            }
+            if (previousOdo === null || previousOdo === undefined) return null;
+            const dist = currentOdometer - previousOdo;
+            // distance can be zero or positive; negative means odometer rollback — we allow but warn? We'll store as is.
+            return dist;
+        }
+
+        // refresh the plate dropdown in entry form
+        function refreshPlateDropdown() {
+            const plates = getVehicleList();
+            const currentSelected = entryPlate.value;
+            entryPlate.innerHTML = '';
+            if (plates.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = '-- No vehicles, add one above --';
+                entryPlate.appendChild(opt);
+                entryPlate.disabled = true;
+                return;
+            }
+            entryPlate.disabled = false;
+            plates.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p;
+                opt.textContent = p;
+                entryPlate.appendChild(opt);
+            });
+            // try to restore selection
+            if (plates.includes(currentSelected)) {
+                entryPlate.value = currentSelected;
+            } else {
+                entryPlate.value = plates[0] || '';
+            }
+        }
+
+        // Compute distance & mpg for a given record based on previous state (used during edit/save)
+        // We'll recompute the whole chain when saving/editing to keep consistency.
+        // This function recalculates distances and mpgs for all records of a vehicle in order.
+        function recalcVehicleRecords(plate) {
+            const vehicle = db.vehicles[plate];
+            if (!vehicle || !vehicle.records) return;
+
+            let previousOdometer = vehicle.initialOdometer ?? null;
+            for (let rec of vehicle.records) {
+                // distance
+                if (previousOdometer !== null && rec.odometer !== undefined) {
+                    rec.distance = rec.odometer - previousOdometer;
+                } else {
+                    rec.distance = null;
+                }
+                // mpg
+                if (rec.distance && rec.distance > 0 && rec.gallons && rec.gallons > 0) {
+                    rec.mpg = rec.distance / rec.gallons;
+                } else {
+                    rec.mpg = null; // or 0
+                }
+                // update previousOdometer for next record
+                previousOdometer = rec.odometer;
+            }
+        }
+
+        // Recalculate ALL vehicles (used after import or bulk changes)
+        function recalcAllVehicles() {
+            for (let plate in db.vehicles) {
+                recalcVehicleRecords(plate);
+            }
+        }
+
+        // ---------- UI rendering ----------
+        function renderAll() {
+            refreshPlateDropdown();
+            renderTableAndChart();
+        }
+
+        function renderTableAndChart() {
+            // Gather all records across all vehicles, sort by date (newest first), take last 10 for display? 
+            // The requirement: "display a graph showing the last 10 fuel consumption and distance records"
+            // We'll gather all records with a valid date, sort ascending for chart (oldest to newest of the last 10)
+            // For the table we'll show the last 10 records (newest first). 
+            let allRecords = [];
+            for (let plate in db.vehicles) {
+                const vehicle = db.vehicles[plate];
+                if (vehicle.records) {
+                    vehicle.records.forEach(rec => {
+                        allRecords.push({ ...rec, plate });
+                    });
+                }
+            }
+
+            // Sort by date ascending for chart (oldest to newest), but we need last 10 => take the 10 most recent
+            allRecords.sort((a, b) => new Date(a.date) - new Date(b.date));
+            const last10Asc = allRecords.slice(-10); // ascending (oldest to newest among last 10)
+
+            // For table: show the same last 10 but in descending order (newest first)
+            const last10Desc = [...last10Asc].reverse();
+
+            // --- render table ---
+            if (last10Desc.length === 0) {
+                tableBody.innerHTML = '';
+                noRecordsMsg.style.display = 'block';
+            } else {
+                noRecordsMsg.style.display = 'none';
+                let html = '';
+                last10Desc.forEach(rec => {
+                    const dateStr = rec.date ? new Date(rec.date).toLocaleDateString() : '—';
+                    const distStr = (rec.distance !== null && rec.distance !== undefined) ? rec.distance.toFixed(1) : '—';
+                    const mpgStr = (rec.mpg !== null && rec.mpg !== undefined) ? rec.mpg.toFixed(2) : '—';
+                    const gallonsStr = rec.gallons ? rec.gallons.toFixed(2) : '—';
+                    const costStr = rec.costPerGallon ? rec.costPerGallon.toFixed(2) : '—';
+                    const odoStr = rec.odometer ? rec.odometer.toFixed(1) : '—';
+                    html += `<tr>
+                        <td><span class="badge">${rec.plate}</span></td>
+                        <td>${dateStr}</td>
+                        <td>${odoStr}</td>
+                        <td>${gallonsStr}</td>
+                        <td>$${costStr}</td>
+                        <td>${distStr}</td>
+                        <td class="value-highlight">${mpgStr}</td>
+                        <td class="action-cell">
+                            <button class="secondary small-btn edit-btn" data-plate="${rec.plate}" data-id="${rec.id}">✎</button>
+                            <button class="danger small-btn delete-btn" data-plate="${rec.plate}" data-id="${rec.id}">🗑</button>
+                        </td>
+                    </tr>`;
+                });
+                tableBody.innerHTML = html;
+
+                // Attach edit / delete listeners
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const plate = e.target.closest('button').dataset.plate;
+                        const id = e.target.closest('button').dataset.id;
+                        handleEditRecord(plate, id);
+                    });
+                });
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const plate = e.target.closest('button').dataset.plate;
+                        const id = e.target.closest('button').dataset.id;
+                        handleDeleteRecord(plate, id);
+                    });
+                });
+            }
+
+            // --- render chart ---
+            const labels = last10Asc.map(rec => {
+                const d = new Date(rec.date);
+                return `${rec.plate} ${d.toLocaleDateString()}`;
+            });
+            const mpgData = last10Asc.map(rec => rec.mpg !== null && rec.mpg !== undefined ? rec.mpg : 0);
+            const distanceData = last10Asc.map(rec => rec.distance !== null && rec.distance !== undefined ? rec.distance : 0);
+
+            const ctx = document.getElementById('fuelChart').getContext('2d');
+            if (chart) chart.destroy();
+
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'MPG (miles per gallon)',
+                            data: mpgData,
+                            backgroundColor: 'rgba(44, 110, 156, 0.7)',
+                            borderColor: '#1e3a5f',
+                            borderWidth: 1,
+                            yAxisID: 'y',
+                            order: 1,
+                            borderRadius: 6,
+                        },
+                        {
+                            label: 'Distance (miles)',
+                            data: distanceData,
+                            type: 'line',
+                            borderColor: '#2e7d32',
+                            backgroundColor: 'rgba(46, 125, 50, 0.1)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#1b5e20',
+                            pointRadius: 4,
+                            tension: 0.2,
+                            yAxisID: 'y1',
+                            order: 0,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'top' },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'MPG' },
+                            grid: { color: '#e9eef5' }
+                        },
+                        y1: {
+                            beginAtZero: true,
+                            position: 'right',
+                            title: { display: true, text: 'Distance (miles)' },
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ---------- event handlers ----------
+
+        // Save vehicle setup
+        saveSetupBtn.addEventListener('click', () => {
+            const plate = setupPlate.value.trim().toUpperCase();
+            const odo = parseFloat(setupOdometer.value);
+
+            if (!plate) {
+                setupStatus.textContent = '❌ Please enter a license plate.';
+                return;
+            }
+            if (isNaN(odo) || odo < 0) {
+                setupStatus.textContent = '❌ Please enter a valid initial odometer (≥ 0).';
+                return;
+            }
+
+            if (db.vehicles[plate]) {
+                // update initial odometer if vehicle exists and has no records? 
+                // If records exist, changing initial odometer would mess up distances; we'll allow but recalc.
+                if (db.vehicles[plate].records && db.vehicles[plate].records.length > 0) {
+                    if (!confirm(`Vehicle ${plate} already has fuel records. Changing initial odometer will recalculate distances. Continue?`)) {
+                        return;
+                    }
+                }
+                db.vehicles[plate].initialOdometer = odo;
+            } else {
+                db.vehicles[plate] = {
+                    initialOdometer: odo,
+                    records: []
+                };
+            }
+            // Recalculate distances for this vehicle (since initial changed)
+            recalcVehicleRecords(plate);
+            saveDB(db);
+            setupStatus.textContent = `✅ Vehicle ${plate} saved with initial odometer ${odo.toFixed(1)} mi.`;
+            // Clear form? Optional
+            // setupPlate.value = '';
+            // setupOdometer.value = '';
+            renderAll();
+        });
+
+        // Add fuel record
+        addEntryBtn.addEventListener('click', () => {
+            const plate = entryPlate.value;
+            if (!plate) {
+                entryStatus.textContent = '❌ No vehicle selected. Save a vehicle first.';
+                return;
+            }
+            const odo = parseFloat(entryOdometer.value);
+            const gallons = parseFloat(entryGallons.value);
+            const costPerGal = parseFloat(entryCostPerGal.value);
+
+            if (isNaN(odo) || odo < 0) {
+                entryStatus.textContent = '❌ Please enter a valid odometer (≥ 0).';
+                return;
+            }
+            if (isNaN(gallons) || gallons <= 0) {
+                entryStatus.textContent = '❌ Gallons must be > 0.';
+                return;
+            }
+            if (isNaN(costPerGal) || costPerGal <= 0) {
+                entryStatus.textContent = '❌ Cost per gallon must be > 0.';
+                return;
+            }
+
+            const vehicle = db.vehicles[plate];
+            if (!vehicle) {
+                entryStatus.textContent = '❌ Vehicle not found.';
+                return;
+            }
+
+            // Calculate distance based on last record or initial
+            const prevOdo = getLastOdometerForVehicle(plate);
+            let distance = null;
+            if (prevOdo !== null && prevOdo !== undefined) {
+                distance = odo - prevOdo;
+            }
+            // mpg
+            let mpg = null;
+            if (distance !== null && distance > 0 && gallons > 0) {
+                mpg = distance / gallons;
+            }
+
+            const newRecord = {
+                id: crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random(),
+                plate: plate,
+                date: new Date().toISOString(),
+                odometer: odo,
+                gallons: gallons,
+                costPerGallon: costPerGal,
+                distance: distance,
+                mpg: mpg
+            };
+
+            vehicle.records.push(newRecord);
+            // Recalculate whole chain for consistency (in case something changed)
+            recalcVehicleRecords(plate);
+            saveDB(db);
+            entryStatus.textContent = `✅ Record added for ${plate}.`;
+            // Clear entry fields (keep plate)
+            entryOdometer.value = '';
+            entryGallons.value = '';
+            entryCostPerGal.value = '';
+            renderAll();
+        });
+
+        // Edit record: we'll prompt for new values (simple)
+        function handleEditRecord(plate, recordId) {
+            const vehicle = db.vehicles[plate];
+            if (!vehicle) return;
+            const recordIndex = vehicle.records.findIndex(r => r.id === recordId);
+            if (recordIndex === -1) return;
+            const rec = vehicle.records[recordIndex];
+
+            const newOdo = prompt('Enter new odometer reading:', rec.odometer);
+            if (newOdo === null) return; // cancel
+            const odoVal = parseFloat(newOdo);
+            if (isNaN(odoVal) || odoVal < 0) {
+                alert('Invalid odometer value.');
+                return;
+            }
+
+            const newGallons = prompt('Enter new gallons:', rec.gallons);
+            if (newGallons === null) return;
+            const galVal = parseFloat(newGallons);
+            if (isNaN(galVal) || galVal <= 0) {
+                alert('Invalid gallons.');
+                return;
+            }
+
+            const newCost = prompt('Enter new cost per gallon ($):', rec.costPerGallon);
+            if (newCost === null) return;
+            const costVal = parseFloat(newCost);
+            if (isNaN(costVal) || costVal <= 0) {
+                alert('Invalid cost per gallon.');
+                return;
+            }
+
+            // Update record
+            rec.odometer = odoVal;
+            rec.gallons = galVal;
+            rec.costPerGallon = costVal;
+            // Recalculate all records for this vehicle (distances & mpg)
+            recalcVehicleRecords(plate);
+            saveDB(db);
+            renderAll();
+            entryStatus.textContent = `✎ Record updated.`;
+        }
+
+        function handleDeleteRecord(plate, recordId) {
+            if (!confirm('Delete this record? This cannot be undone.')) return;
+            const vehicle = db.vehicles[plate];
+            if (!vehicle) return;
+            vehicle.records = vehicle.records.filter(r => r.id !== recordId);
+            // Recalculate distances and mpg after deletion
+            recalcVehicleRecords(plate);
+            saveDB(db);
+            renderAll();
+            entryStatus.textContent = `🗑 Record deleted.`;
+        }
+
+        // Export JSON
+        exportBtn.addEventListener('click', () => {
+            const dataStr = JSON.stringify(db, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fueltrack-backup-${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            entryStatus.textContent = '📤 Data exported.';
+        });
+
+        // Import JSON
+        importFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const imported = JSON.parse(ev.target.result);
+                    if (!imported.vehicles || typeof imported.vehicles !== 'object') {
+                        throw new Error('Invalid format');
+                    }
+                    // Basic validation: each vehicle should have initialOdometer & records array
+                    for (let plate in imported.vehicles) {
+                        const v = imported.vehicles[plate];
+                        if (typeof v.initialOdometer !== 'number' || !Array.isArray(v.records)) {
+                            throw new Error(`Invalid vehicle data for ${plate}`);
+                        }
+                        // ensure each record has required fields
+                        v.records.forEach(r => {
+                            if (typeof r.odometer !== 'number' || typeof r.gallons !== 'number' || typeof r.costPerGallon !== 'number') {
+                                throw new Error('Record missing required numeric fields');
+                            }
+                            // ensure id exists, else generate
+                            if (!r.id) r.id = crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random();
+                            if (!r.date) r.date = new Date().toISOString();
+                        });
+                    }
+
+                    if (confirm('Overwrite current data with imported data?')) {
+                        db = imported;
+                        recalcAllVehicles(); // recalc distances & mpg after import
+                        saveDB(db);
+                        renderAll();
+                        entryStatus.textContent = '📥 Data imported successfully.';
+                    }
+                } catch (err) {
+                    alert('Invalid JSON file: ' + err.message);
+                } finally {
+                    importFile.value = ''; // reset file input
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        // Recalculate on initial load just in case stored data is inconsistent
+        recalcAllVehicles();
+        saveDB(db); // save recalculated version
+        renderAll();
+
+        // When plate selection changes in entry form, we could auto-suggest odometer? not needed.
+
+        // on load, if no vehicles, maybe prefill example? leave empty.
+        // Set initial focus
+        setupPlate.focus();
+    })();
+</script>
+</body>
+</html>
