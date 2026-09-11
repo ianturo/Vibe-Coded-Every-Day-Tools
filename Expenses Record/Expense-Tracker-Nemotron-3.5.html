@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Gastos</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    .card { background: #fff; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    input, select { padding: 0.5rem; width: 100%; margin-bottom: 0.5rem; }
+    button { padding: 0.6rem 1rem; cursor: pointer; }
+    #gastoForm { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; }
+  </style>
+</head>
+<body>
+
+  <h2>📊 Control de Gastos Diarios</h2>
+
+  <!-- Formulario de ingreso -->
+  <div class="card">
+    <form id="formGasto">
+      <input type="date" id="fecha" required>
+      <input type="number" id="monto" step="0.01" required>
+      <select id="categoria" required>
+        <option value="">-- Seleccionar categoría --</option>
+        <option value">Comida</option>
+        <option value">Transporte</option>
+        <option value">Entretenimiento</option>
+        <option value">Saneamiento</option>
+        <option value">Otros</option>
+      </select>
+      <input type="text" id="descripcion" placeholder="Descripción opcional">
+      <button type="submit">Agregar gasto</button>
+    </form>
+  </div>
+
+  <!-- Lista de gastos -->
+  <div class="card">
+    <h3>Últimos gastos</h3>
+    <ul id="listaGastos"></ul>
+  </div>
+
+  <!-- Resúmenes -->
+  <div class="card" style="grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+    <div><strong>Últimos 6 meses:</strong> <span id="res6M">0</span> €</div>
+    <div><strong>Último año:</strong> <span id="res1A">0</span> €</div>
+    <div><strong>Semanal promedio:</strong> <span id="resSem">0</span> €</div>
+  </div>
+
+  <!-- Gráfico semanal -->
+  <div class="card" style="margin-top: 2rem;">
+    <h3>Gasto semanal (últimos 7 días)</h3>
+    <canvas id="semanalChart"></canvas>
+  </div>
+
+  <!-- Export / Import -->
+  <div class="card" style="margin-top: 1rem;;">
+    <button id="exportBtn">Exportar datos (CSV)</button>
+    <input type="file" id="importInput" accept=".csv,.json">
+  </div>
+
+</body>
+<script>
+  // Inicializar base de datos en localStorage
+  const KEY = 'gastos_app';
+  let gastos = JSON.parse(localStorage.getItem(KEY) || '[]');
+
+  // Renderizar lista
+  function renderList() {
+    const ul = document.getElementById('listaGastos');
+    ul.innerHTML = '';
+    gastos.slice().reverse().forEach((g, i) => {
+      const li = document.createElement('li');
+      li.style.cssText = 'display:flex; justify-content:space-between; align-items:center;';
+      li.innerHTML = `
+        <span>${g.fecha} - ${g.monto} € - ${g.categoria}</span>
+        <button style="color:#e74c3c;" onclick="eliminarGasto(${i})">✕</button>
+      `;
+      ul.appendChild(li);
+    });
+  }
+  renderList();
+
+  // Agregar gasto
+  document.getElementById('formGasto').addEventListener('submit', e => {
+    e.preventDefault();
+    const gasto = {
+      fecha: document.getElementById('fecha').value,
+      monto: parseFloat(document.getElementById('monto').value),
+      categoria: document.getElementById('categoria').value,
+      descripcion: document.getElementById('descripcion').value
+    };
+    gastos.push(gasto);
+    localStorage.setItem(KEY, JSON.stringify(gastos));
+    renderList();
+    actualizarResumenes();
+    document.getElementById('formGasto').reset();
+  });
+
+  // Eliminar gasto
+  window.eliminarGasto = i => {
+    gastos.splice(i, 1);
+    localStorage.setItem(KEY, JSON.stringify(gastos));
+    renderList();
+    actualizarResumenes();
+  };
+
+  // Cálculos y resúmenes
+  function actualizarResumenes() {
+    const hoy = new Date();
+    const ultimos6M = new Date(); ultimos6M.setMonth(ultimos6M.getMonth() - 6);
+    const ultimos12M = new Date(); ultimos12M.setFullYear(ultimos12M.getFullYear() - 1);
+
+    let total6M = 0, total1A = 0, sumaSemanal = 0;
+    const diasSemana = [];
+
+    gastos.forEach(g => {
+      const fecha = new Date(g.fecha);
+      if (fecha >= ultimos6M) total6M += g.monto;
+      if (fecha >= ultimos12M) total1A += g.monto;
+
+      // Semanal: últimos 7 días contando desde hoy
+      const diff = hoy - fecha;
+      const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
+      if (dias >= 0 && dias < 7) {
+        sumaSemanal += g.monto;
+        diasSemana.push({ dia: fecha.getDay(), monto: g.monto });
+      }
+    });
+
+    document.getElementById('res6M').innerText = total6M.toFixed(2);
+    document.getElementById('res1A').innerText = total1A.toFixed(2);
+    document.getElementById('resSem').innerText = sumaSemanal.toFixed(2);
+
+    // Gráfico semanal
+    const ctx = document.getElementById('semanalChart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+        datasets: [{
+          label: 'Gasto',
+          data: Array(7).fill(0).map((_, i) => {
+            const matches = diasSemana.filter(d => d.dia === i);
+            return matches.reduce((sum, d) => sum + d.monto, 0);
+          }),
+          backgroundColor: ['#3498db', '#2ecc71', '#e67e22', '#9b59b6', '#e74c3c', '#f1c40f', '#95a5a6']
+        }]
+      },
+      options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+  }
+
+  actualizarResumenes();
+
+  // Exportar CSV
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const csv = [['Fecha', 'Monto', 'Categoría', 'Descripción']].concat(gastos.map(g => [g.fecha, g.monto, g.categoria, g.descripción]));
+    const blob = new Blob([csv.map(row => row.join(';'))], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'gastos.csv'; a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // Importar CSV/JSON
+  document.getElementById('importInput').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const data = JSON.parse(e.target.result);
+      if (Array.isArray(data)) {
+        gastos = data;
+        localStorage.setItem(KEY, JSON.stringify(gastos));
+        renderList();
+        actualizarResumenes();
+      }
+    };
+    reader.readAsText(file);
+  });
+</script>
+</html>

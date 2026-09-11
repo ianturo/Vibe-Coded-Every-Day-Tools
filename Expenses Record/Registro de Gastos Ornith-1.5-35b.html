@@ -1,0 +1,1447 @@
+
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+							<style>
+								body {
+									background-color: white; /* Ensure the iframe has a white background */
+								}
+
+								
+							</style>
+                        </head>
+                        <body>
+                            <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Gastos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6c5ce7;
+            --primary-dark: #5849c2;
+            --secondary: #00cec9;
+            --danger: #e17055;
+            --success: #00b894;
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #2d3436;
+            --text-light: #636e72;
+            --border: #dfe6e9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .header .currency-display {
+            margin-top: 5px;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Navigation */
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            padding: 10px;
+            background: var(--card);
+            position: sticky;
+            top: 76px;
+            z-index: 99;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            flex-wrap: wrap;
+        }
+
+        .nav button {
+            padding: 10px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav button.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .nav button:hover {
+            background: rgba(108, 92, 231, 0.1);
+        }
+
+        /* Main container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 8px;
+        }
+
+        .btn-edit {
+            background: var(--secondary);
+            color: white;
+        }
+
+        /* Category list */
+        .category-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            background: var(--bg);
+            gap: 12px;
+        }
+
+        .category-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .category-info {
+            flex: 1;
+        }
+
+        .category-info .name {
+            font-weight: 600;
+        }
+
+        .category-info .count {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .category-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        /* Expense list */
+        .expense-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            background: var(--bg);
+            gap: 12px;
+        }
+
+        .expense-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .expense-info {
+            flex: 1;
+        }
+
+        .expense-info .description {
+            font-weight: 600;
+        }
+
+        .expense-info .meta {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 3px;
+        }
+
+        .expense-amount {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .expense-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        /* Summary cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .summary-card .label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 5px;
+        }
+
+        .summary-card .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--danger);
+        }
+
+        .summary-card .sub-value {
+            font-size: 0.8rem;
+            color: var(--success);
+            margin-top: 5px;
+        }
+
+        /* Charts */
+        .chart-container {
+            margin-top: 15px;
+        }
+
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            height: 200px;
+            padding: 10px 0;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .bar-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            height: 100%;
+        }
+
+        .bar {
+            width: 100%;
+            max-width: 50px;
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+            border-radius: 8px 8px 0 0;
+            transition: height 0.5s ease;
+            min-height: 5px;
+        }
+
+        .bar-label {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .bar-value {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        /* Period selector */
+        .period-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .period-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--border);
+            background: white;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .period-btn.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Currency selector */
+        .currency-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .currency-option {
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .currency-option:hover {
+            border-color: var(--primary);
+        }
+
+        .currency-option.selected {
+            border-color: var(--primary);
+            background: rgba(108, 92, 231, 0.1);
+        }
+
+        .currency-option .symbol {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .currency-option .code {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 25px;
+            width: 100%;
+            max-width: 450px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-actions .btn {
+            flex: 1;
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+            border: 2px solid var(--border);
+        }
+
+        /* Color picker */
+        .color-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .color-option {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .color-option.selected {
+            border-color: var(--text);
+            transform: scale(1.1);
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state .icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .empty-state p {
+            font-size: 0.9rem;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--text);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            z-index: 2000;
+            transition: transform 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Export/Import */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-buttons .btn {
+            flex: 1;
+        }
+
+        .file-input-wrapper {
+            display: none;
+        }
+
+        /* Pie chart legend */
+        .legend {
+            margin-top: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .legend-amount {
+            margin-left: auto;
+            font-weight: 600;
+        }
+
+        /* Progress bar for category */
+        .progress-bar {
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 500px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .nav button {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>💰 Control de Gastos</h1>
+        <div class="currency-display" id="currencyHeader">Moneda: USD ($)</div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <button class="nav-btn active" data-section="dashboard">📊 Dashboard</button>
+        <button class="nav-btn" data-section="add">➕ Agregar Gasto</button>
+        <button class="nav-btn" data-section="expenses">📋 Gastos</button>
+        <button class="nav-btn" data-section="categories">🏷️ Categorías</button>
+        <button class="nav-btn" data-section="currency">💱 Moneda</button>
+        <button class="nav-btn" data-section="data">📁 Datos</button>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section active">
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <div class="label">Gasto Total (período)</div>
+                    <div class="value" id="totalPeriod">$0.00</div>
+                    <div class="sub-value" id="periodLabel">Últimos 6 meses</div>
+                </div>
+                <div class="summary-card">
+                    <div class="label">Promedio Diario</div>
+                    <div class="value" id="avgDaily">$0.00</div>
+                    <div class="sub-value">Gasto promedio/día</div>
+                </div>
+                <div class="summary-card">
+                    <div class="label">Mayor Gasto</div>
+                    <div class="value" id="maxExpense">$0.00</div>
+                    <div class="sub-value" id="maxExpenseInfo">Sin gastos</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📈 Gastos por Período</h2>
+                <div class="period-selector">
+                    <button class="period-btn active" data-period="6m">Últimos 6 meses</button>
+                    <button class="period-btn" data-period="1y">Último año</button>
+                    <button class="period-btn" data-period="week">Semanal</button>
+                </div>
+                <div class="chart-container">
+                    <div class="bar-chart" id="barChart"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🥧 Gastos por Categoría</h2>
+                <div class="legend" id="categoryLegend"></div>
+            </div>
+        </section>
+
+        <!-- Add Expense Section -->
+        <section id="add" class="section">
+            <div class="card">
+                <h2>➕ Agregar Gasto</h2>
+                <form id="expenseForm">
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <input type="text" id="expenseDescription" placeholder="Ej: Compra al supermercado" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Monto</label>
+                            <input type="number" id="expenseAmount" placeholder="0.00" step="0.01" min="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Categoría</label>
+                            <select id="expenseCategory" required></select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha</label>
+                        <input type="date" id="expenseDate" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Guardar Gasto</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Expenses Section -->
+        <section id="expenses" class="section">
+            <div class="card">
+                <h2>📋 Historial de Gastos</h2>
+                <div class="form-group">
+                    <select id="filterCategory" onchange="renderExpenses()">
+                        <option value="all">Todas las categorías</option>
+                    </select>
+                </div>
+                <div id="expenseList"></div>
+            </div>
+        </section>
+
+        <!-- Categories Section -->
+        <section id="categories" class="section">
+            <div class="card">
+                <h2>🏷️ Categorías</h2>
+                <div id="categoryList"></div>
+                <div class="modal-actions" style="margin-top: 15px;">
+                    <button class="btn btn-primary" onclick="openCategoryModal()">➕ Nueva Categoría</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Currency Section -->
+        <section id="currency" class="section">
+            <div class="card">
+                <h2>💱 Configurar Moneda</h2>
+                <p style="color: var(--text-light); margin-bottom: 15px; font-size: 0.9rem;">Selecciona la moneda para mostrar tus gastos:</p>
+                <div class="currency-grid" id="currencyGrid"></div>
+            </div>
+        </section>
+
+        <!-- Data Section -->
+        <section id="data" class="section">
+            <div class="card">
+                <h2>📁 Exportar Datos</h2>
+                <p style="color: var(--text-light); margin-bottom: 15px; font-size: 0.9rem;">Descarga una copia de seguridad de tus datos en formato JSON.</p>
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="exportData()">📤 Exportar Datos</button>
+                </div>
+            </div>
+            <div class="card">
+                <h2>📥 Importar Datos</h2>
+                <p style="color: var(--text-light); margin-bottom: 15px; font-size: 0.9rem;">Restaura tus datos desde un archivo JSON.</p>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📥 Importar Datos</button>
+                </div>
+                <input type="file" id="fileInput" class="file-input-wrapper" accept=".json" onchange="importData(event)">
+            </div>
+            <div class="card">
+                <h2>🗑️ Limpiar Datos</h2>
+                <p style="color: var(--text-light); margin-bottom: 15px; font-size: 0.9rem;">Elimina todos los gastos y categorías.</p>
+                <button class="btn btn-danger" onclick="clearAllData()">🗑️ Limpiar Todo</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Category Modal -->
+    <div class="modal-overlay" id="categoryModal">
+        <div class="modal">
+            <h3 id="categoryModalTitle">Nueva Categoría</h3>
+            <input type="hidden" id="categoryEditId">
+            <div class="form-group">
+                <label>Nombre de la Categoría</label>
+                <input type="text" id="categoryName" placeholder="Ej: Alimentación">
+            </div>
+            <div class="form-group">
+                <label>Ícono (emoji)</label>
+                <input type="text" id="categoryIcon" placeholder="🍽️" maxlength="2">
+            </div>
+            <div class="form-group">
+                <label>Color</label>
+                <div class="color-options" id="colorOptions"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeCategoryModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveCategory()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============ DATA MANAGEMENT ============
+        const COLORS = [
+            '#e17055', '#00b894', '#6c5ce7', '#fdcb6e', '#e84393',
+            '#00cec9', '#d63031', '#0984e3', '#a296fe', '#fab1a0',
+            '#55a3e0', '#78e08f'
+        ];
+
+        const CURRENCIES = [
+            { code: 'USD', symbol: '$', name: 'Dólar Americano' },
+            { code: 'EUR', symbol: '€', name: 'Euro' },
+            { code: 'MXN', symbol: '$', name: 'Peso Mexicano' },
+            { code: 'ARS', symbol: '$', name: 'Peso Argentino' },
+            { code: 'COP', symbol: '$', name: 'Peso Colombiano' },
+            { code: 'CLP', symbol: '$', name: 'Peso Chileno' },
+            { code: 'PEN', symbol: 'S/', name: 'Sol Peruano' },
+            { code: 'BRL', symbol: 'R$', name: 'Real Brasileño' },
+            { code: 'GBP', symbol: '£', name: 'Libra Esterlina' },
+            { code: 'JPY', symbol: '¥', name: 'Yen Japonés' }
+        ];
+
+        const DEFAULT_CATEGORIES = [
+            { id: '1', name: 'Alimentación', icon: '🍽️', color: '#00b894' },
+            { id: '2', name: 'Transporte', icon: '🚗', color: '#6c5ce7' },
+            { id: '3', name: 'Vivienda', icon: '🏠', color: '#e17055' },
+            { id: '4', name: 'Entretenimiento', icon: '🎮', color: '#e84393' },
+            { id: '5', name: 'Salud', icon: '💊', color: '#00cec9' },
+            { id: '6', name: 'Ropa', icon: '👕', color: '#fdcb6e' },
+            { id: '7', name: 'Servicios', icon: '💡', color: '#a296fe' },
+            { id: '8', name: 'Otros', icon: '📦', color: '#636e72' }
+        ];
+
+        let data = {
+            expenses: [],
+            categories: DEFAULT_CATEGORIES,
+            currency: 'USD'
+        };
+
+        let selectedColor = COLORS[0];
+
+        // ============ INIT ============
+        function init() {
+            loadData();
+            setupNavigation();
+            setupEventListeners();
+            updateCurrencyHeader();
+            renderCategories();
+            renderCurrency();
+            renderColorOptions();
+            renderCategorySelect();
+            setDefaultDate();
+            updateDashboard();
+            renderExpenses();
+            renderFilterCategory();
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('expenseApp');
+            if (saved) {
+                data = JSON.parse(saved);
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('expenseApp', JSON.stringify(data));
+        }
+
+        // ============ NAVIGATION ============
+        function setupNavigation() {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                    document.getElementById(btn.dataset.section).classList.add('active');
+
+                    if (btn.dataset.section === 'dashboard') updateDashboard();
+                    if (btn.dataset.section === 'expenses') renderExpenses();
+                });
+            });
+        }
+
+        function setupEventListeners() {
+            document.getElementById('expenseForm').addEventListener('submit', handleAddExpense);
+
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    updateDashboard();
+                });
+            });
+        }
+
+        // ============ EXPENSES ============
+        function handleAddExpense(e) {
+            e.preventDefault();
+            const description = document.getElementById('expenseDescription').value.trim();
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const categoryId = document.getElementById('expenseCategory').value;
+            const date = document.getElementById('expenseDate').value;
+
+            if (!description || !amount || !categoryId || !date) {
+                showToast('Por favor completa todos los campos');
+                return;
+            }
+
+            const expense = {
+                id: Date.now().toString(),
+                description,
+                amount,
+                categoryId,
+                date,
+                createdAt: new Date().toISOString()
+            };
+
+            data.expenses.push(expense);
+            saveData();
+            showToast('Gasto agregado correctamente');
+
+            e.target.reset();
+            setDefaultDate();
+            updateDashboard();
+        }
+
+        function openEditExpenseModal(id) {
+            const expense = data.expenses.find(e => e.id === id);
+            if (!expense) return;
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay active';
+            modal.innerHTML = `
+                <div class="modal">
+                    <h3>Editar Gasto</h3>
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <input type="text" id="editExpDesc" value="${expense.description}">
+                    </div>
+                    <div class="form-group">
+                        <label>Monto</label>
+                        <input type="number" id="editExpAmount" value="${expense.amount}" step="0.01" min="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <select id="editExpCategory">
+                            ${data.categories.map(c => `<option value="${c.id}" ${c.id === expense.categoryId ? 'selected' : ''}>${c.icon} ${c.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha</label>
+                        <input type="date" id="editExpDate" value="${expense.date}">
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
+                        <button class="btn btn-primary" onclick="saveExpense('${id}')">Guardar</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        }
+
+        function saveExpense(id) {
+            const expense = data.expenses.find(e => e.id === id);
+            if (!expense) return;
+
+            const description = document.getElementById('editExpDesc').value.trim();
+            const amount = parseFloat(document.getElementById('editExpAmount').value);
+            const categoryId = document.getElementById('editExpCategory').value;
+            const date = document.getElementById('editExpDate').value;
+
+            if (!description || !amount || !date) {
+                showToast('Por favor completa todos los campos');
+                return;
+            }
+
+            expense.description = description;
+            expense.amount = amount;
+            expense.categoryId = categoryId;
+            expense.date = date;
+
+            saveData();
+            document.querySelector('.modal-overlay.active')?.remove();
+            showToast('Gasto actualizado');
+            renderExpenses();
+            updateDashboard();
+        }
+
+        function deleteExpense(id) {
+            if (!confirm('¿Estás seguro de eliminar este gasto?')) return;
+            data.expenses = data.expenses.filter(e => e.id !== id);
+            saveData();
+            showToast('Gasto eliminado');
+            renderExpenses();
+            updateDashboard();
+        }
+
+        // ============ CATEGORIES ============
+        function renderCategories() {
+            const container = document.getElementById('categoryList');
+            if (data.categories.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🏷️</div>
+                        <p>No hay categorías creadas</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = data.categories.map(cat => {
+                const count = data.expenses.filter(e => e.categoryId === cat.id).length;
+                const total = data.expenses
+                    .filter(e => e.categoryId === cat.id)
+                    .reduce((sum, e) => sum + e.amount, 0);
+                return `
+                    <div class="category-item">
+                        <div class="category-color" style="background: ${cat.color}"></div>
+                        <div class="category-info">
+                            <div class="name">${cat.icon} ${cat.name}</div>
+                            <div class="count">${count} gastos • ${formatMoney(total)}</div>
+                        </div>
+                        <div class="category-actions">
+                            <button class="btn btn-small btn-edit" onclick="openCategoryModal('${cat.id}')">✏️</button>
+                            <button class="btn btn-small btn-danger" onclick="deleteCategory('${cat.id}')">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderColorOptions() {
+            const container = document.getElementById('colorOptions');
+            container.innerHTML = COLORS.map(color => `
+                <div class="color-option ${color === selectedColor ? 'selected' : ''}" 
+                     style="background: ${color}" 
+                     onclick="selectColor('${color}')"></div>
+            `).join('');
+        }
+
+        function selectColor(color) {
+            selectedColor = color;
+            renderColorOptions();
+        }
+
+        function openCategoryModal(id = null) {
+            const modal = document.getElementById('categoryModal');
+            if (id) {
+                const cat = data.categories.find(c => c.id === id);
+                document.getElementById('categoryModalTitle').textContent = 'Editar Categoría';
+                document.getElementById('categoryEditId').value = id;
+                document.getElementById('categoryName').value = cat.name;
+                document.getElementById('categoryIcon').value = cat.icon;
+                selectedColor = cat.color;
+            } else {
+                document.getElementById('categoryModalTitle').textContent = 'Nueva Categoría';
+                document.getElementById('categoryEditId').value = '';
+                document.getElementById('categoryName').value = '';
+                document.getElementById('categoryIcon').value = '';
+                selectedColor = COLORS[0];
+            }
+            renderColorOptions();
+            modal.classList.add('active');
+        }
+
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').classList.remove('active');
+        }
+
+        function saveCategory() {
+            const id = document.getElementById('categoryEditId').value;
+            const name = document.getElementById('categoryName').value.trim();
+            const icon = document.getElementById('categoryIcon').value.trim() || '📦';
+
+            if (!name) {
+                showToast('Ingresa un nombre para la categoría');
+                return;
+            }
+
+            if (id) {
+                const cat = data.categories.find(c => c.id === id);
+                cat.name = name;
+                cat.icon = icon;
+                cat.color = selectedColor;
+                showToast('Categoría actualizada');
+            } else {
+                data.categories.push({
+                    id: Date.now().toString(),
+                    name,
+                    icon,
+                    color: selectedColor
+                });
+                showToast('Categoría creada');
+            }
+
+            saveData();
+            closeCategoryModal();
+            renderCategories();
+            renderCategorySelect();
+            renderFilterCategory();
+        }
+
+        function deleteCategory(id) {
+            const used = data.expenses.some(e => e.categoryId === id);
+            if (used) {
+                showToast('No puedes eliminar una categoría con gastos asignados');
+                return;
+            }
+            if (!confirm('¿Estás seguro de eliminar esta categoría?')) return;
+            data.categories = data.categories.filter(c => c.id !== id);
+            saveData();
+            showToast('Categoría eliminada');
+            renderCategories();
+            renderCategorySelect();
+            renderFilterCategory();
+        }
+
+        function renderCategorySelect() {
+            const select = document.getElementById('expenseCategory');
+            select.innerHTML = data.categories.map(c => `
+                <option value="${c.id}">${c.icon} ${c.name}</option>
+            `).join('');
+        }
+
+        function renderFilterCategory() {
+            const select = document.getElementById('filterCategory');
+            const current = select.value;
+            select.innerHTML = `<option value="all">Todas las categorías</option>` +
+                data.categories.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+            select.value = current;
+        }
+
+        // ============ EXPENSES LIST ============
+        function renderExpenses() {
+            const container = document.getElementById('expenseList');
+            const filter = document.getElementById('filterCategory').value;
+
+            let expenses = [...data.expenses];
+            if (filter !== 'all') {
+                expenses = expenses.filter(e => e.categoryId === filter);
+            }
+            expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (expenses.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📋</div>
+                        <p>No hay gastos registrados</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = expenses.map(expense => {
+                const cat = data.categories.find(c => c.id === expense.categoryId) || { icon: '📦', name: 'Sin categoría', color: '#636e72' };
+                return `
+                    <div class="expense-item">
+                        <div class="expense-icon" style="background: ${cat.color}22">
+                            ${cat.icon}
+                        </div>
+                        <div class="expense-info">
+                            <div class="description">${expense.description}</div>
+                            <div class="meta">${cat.name} • ${formatDate(expense.date)}</div>
+                        </div>
+                        <div class="expense-amount">${formatMoney(expense.amount)}</div>
+                        <div class="expense-actions">
+                            <button class="btn btn-small btn-edit" onclick="openEditExpenseModal('${expense.id}')">✏️</button>
+                            <button class="btn btn-small btn-danger" onclick="deleteExpense('${expense.id}')">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============ DASHBOARD ============
+        function updateDashboard() {
+            const period = document.querySelector('.period-btn.active').dataset.period;
+            const filtered = getExpensesByPeriod(period);
+
+            const total = filtered.reduce((sum, e) => sum + e.amount, 0);
+            document.getElementById('totalPeriod').textContent = formatMoney(total);
+            document.getElementById('periodLabel').textContent = getPeriodLabel(period);
+
+            // Average daily
+            const days = getDaysInPeriod(period);
+            const avgDaily = days > 0 ? total / days : 0;
+            document.getElementById('avgDaily').textContent = formatMoney(avgDaily);
+
+            // Max expense
+            if (filtered.length > 0) {
+                const max = filtered.reduce((a, b) => a.amount > b.amount ? a : b);
+                document.getElementById('maxExpense').textContent = formatMoney(max.amount);
+                const cat = data.categories.find(c => c.id === max.categoryId);
+                document.getElementById('maxExpenseInfo').textContent = `${cat ? cat.name : 'Sin cat.'} • ${formatDate(max.date)}`;
+            } else {
+                document.getElementById('maxExpense').textContent = formatMoney(0);
+                document.getElementById('maxExpenseInfo').textContent = 'Sin gastos';
+            }
+
+            renderBarChart(filtered, period);
+            renderCategoryLegend(filtered);
+        }
+
+        function getExpensesByPeriod(period) {
+            const now = new Date();
+            return data.expenses.filter(expense => {
+                const date = new Date(expense.date);
+                if (period === 'week') {
+                    const weekAgo = new Date(now);
+                    weekAgo.setDate(now.getDate() - 7);
+                    return date >= weekAgo;
+                } else if (period === '6m') {
+                    const sixMonthsAgo = new Date(now);
+                    sixMonthsAgo.setMonth(now.getMonth() - 6);
+                    return date >= sixMonthsAgo;
+                } else if (period === '1y') {
+                    const yearAgo = new Date(now);
+                    yearAgo.setYear(now.getFullYear() - 1);
+                    return date >= yearAgo;
+                }
+                return true;
+            });
+        }
+
+        function getDaysInPeriod(period) {
+            if (period === 'week') return 7;
+            if (period === '6m') return 183;
+            if (period === '1y') return 365;
+            return 30;
+        }
+
+        function getPeriodLabel(period) {
+            if (period === 'week') return 'Última semana';
+            if (period === '6m') return 'Últimos 6 meses';
+            if (period === '1y') return 'Último año';
+            return '';
+        }
+
+        function renderBarChart(filtered, period) {
+            const chart = document.getElementById('barChart');
+            let labels = [];
+            let values = [];
+
+            if (period === 'week') {
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date();
+                    date.setDate(date.getDate() - i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    labels.push(date.toLocaleDateString('es', { weekday: 'short' }).replace('.', ''));
+                    values.push(filtered.filter(e => e.date === dateStr).reduce((s, e) => s + e.amount, 0));
+                }
+            } else if (period === '6m') {
+                for (let i = 5; i >= 0; i--) {
+                    const date = new Date();
+                    date.setMonth(date.getMonth() - i);
+                    const monthStr = date.toISOString().substring(0, 7);
+                    labels.push(date.toLocaleDateString('es', { month: 'short' }));
+                    values.push(filtered.filter(e => e.date.startsWith(monthStr)).reduce((s, e) => s + e.amount, 0));
+                }
+            } else if (period === '1y') {
+                for (let i = 11; i >= 0; i--) {
+                    const date = new Date();
+                    date.setMonth(date.getMonth() - i);
+                    const monthStr = date.toISOString().substring(0, 7);
+                    labels.push(date.toLocaleDateString('es', { month: 'short' }));
+                    values.push(filtered.filter(e => e.date.startsWith(monthStr)).reduce((s, e) => s + e.amount, 0));
+                }
+            }
+
+            const max = Math.max(...values, 1);
+
+            chart.innerHTML = values.map((val, idx) => {
+                const height = (val / max) * 160;
+                return `
+                    <div class="bar-item">
+                        <div class="bar-value">${val > 0 ? formatShort(val) : ''}</div>
+                        <div class="bar" style="height: ${Math.max(height, 3)}px"></div>
+                        <div class="bar-label">${labels[idx]}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderCategoryLegend(filtered) {
+            const container = document.getElementById('categoryLegend');
+            const totals = {};
+
+            filtered.forEach(expense => {
+                totals[expense.categoryId] = (totals[expense.categoryId] || 0) + expense.amount;
+            });
+
+            const total = Object.values(totals).reduce((s, v) => s + v, 0);
+            const sorted = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+
+            if (sorted.length === 0) {
+                container.innerHTML = `<div class="empty-state"><p>Sin datos para mostrar</p></div>`;
+                return;
+            }
+
+            container.innerHTML = sorted.map(([catId, amount]) => {
+                const cat = data.categories.find(c => c.id === catId) || { name: 'Sin categoría', color: '#636e72' };
+                const percent = total > 0 ? (amount / total) * 100 : 0;
+                return `
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: ${cat.color}"></div>
+                        <span>${cat.icon} ${cat.name}</span>
+                        <span class="legend-amount">${formatMoney(amount)}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percent}%; background: ${cat.color}"></div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============ CURRENCY ============
+        function renderCurrency() {
+            const container = document.getElementById('currencyGrid');
+            container.innerHTML = CURRENCIES.map(cur => `
+                <div class="currency-option ${cur.code === data.currency ? 'selected' : ''}" 
+                     onclick="selectCurrency('${cur.code}')">
+                    <div class="symbol">${cur.symbol}</div>
+                    <div class="code">${cur.code}</div>
+                    <div class="code" style="font-size:0.7rem">${cur.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectCurrency(code) {
+            data.currency = code;
+            saveData();
+            renderCurrency();
+            updateCurrencyHeader();
+            updateDashboard();
+            renderExpenses();
+            renderCategories();
+            showToast('Moneda actualizada');
+        }
+
+        function updateCurrencyHeader() {
+            const cur = CURRENCIES.find(c => c.code === data.currency) || CURRENCIES[0];
+            document.getElementById('currencyHeader').textContent = `Moneda: ${cur.code} (${cur.symbol})`;
+        }
+
+        // ============ DATA EXPORT/IMPORT ============
+        function exportData() {
+            const exportObj = {
+                version: 1,
+                exportDate: new Date().toISOString(),
+                data: data
+            };
+            const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `gastos-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Datos exportados correctamente');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    const importedData = parsed.data || parsed;
+
+                    if (!importedData.expenses || !importedData.categories) {
+                        showToast('Archivo inválido');
+                        return;
+                    }
+
+                    if (!confirm('¿Estás seguro? Esto reemplazará tus datos actuales.')) return;
+
+                    data = {
+                        expenses: importedData.expenses || [],
+                        categories: importedData.categories || [],
+                        currency: importedData.currency || 'USD'
+                    };
+                    saveData();
+                    init();
+                    showToast('Datos importados correctamente');
+                } catch (err) {
+                    showToast('Error al leer el archivo');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function clearAllData() {
+            if (!confirm('¿Estás seguro? Se eliminarán TODOS los datos.')) return;
+            if (!confirm('Esta acción no se puede deshacer. ¿Continuar?')) return;
+            data = {
+                expenses: [],
+                categories: DEFAULT_CATEGORIES,
+                currency: 'USD'
+            };
+            saveData();
+            init();
+            showToast('Datos eliminados');
+        }
+
+        // ============ HELPERS ============
+        function formatMoney(amount) {
+            const cur = CURRENCIES.find(c => c.code === data.currency) || CURRENCIES[0];
+            return `${cur.symbol}${amount.toFixed(2)}`;
+        }
+
+        function formatShort(amount) {
+            if (amount >= 1000) return `${(amount/1000).toFixed(1)}k`;
+            return amount.toFixed(0);
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr + 'T12:00:00');
+            return date.toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function setDefaultDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('expenseDate').value = today;
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Close modals on overlay click
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal-overlay')) {
+                e.target.classList.remove('active');
+            }
+        });
+
+        // Start app
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
+
+							<script>
+                            	
+							</script>
+                        </body>
+                        </html>
+                    
