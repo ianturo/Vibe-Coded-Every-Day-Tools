@@ -1,0 +1,392 @@
+
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+							<style>
+								body {
+									background-color: white; /* Ensure the iframe has a white background */
+								}
+
+								
+							</style>
+                        </head>
+                        <body>
+                            <!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de Consumo de Combustible</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+    body { background: linear-gradient(135deg, #1e3c72, #2a5298); min-height: 100vh; padding: 20px; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { color: #fff; text-align: center; margin-bottom: 20px; font-size: 1.8em; }
+    .card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+    .card h2 { color: #1e3c72; margin-bottom: 15px; font-size: 1.2em; }
+    label { display: block; margin: 10px 0 4px; color: #333; font-weight: 600; font-size: 0.9em; }
+    input, select { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 1em; }
+    input:focus, select:focus { outline: none; border-color: #2a5298; }
+    button { background: #2a5298; color: #fff; border: none; padding: 12px 25px; border-radius: 8px; font-size: 1em; cursor: pointer; margin-top: 15px; font-weight: 600; }
+    button:hover { background: #1e3c72; }
+    button.danger { background: #c0392b; margin-left: 10px; }
+    button.danger:hover { background: #922b21; }
+    .result { background: #eaf2fb; border-left: 4px solid #2a5298; padding: 12px; margin-top: 15px; border-radius: 6px; display: none; }
+    .result strong { color: #1e3c72; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .row > div { flex: 1; min-width: 150px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85em; }
+    th { background: #2a5298; color: #fff; padding: 8px; text-align: left; }
+    td { padding: 8px; border-bottom: 1px solid #eee; }
+    tr:nth-child(even) { background: #f5f8fc; }
+    .badge { display: inline-block; background: #27ae60; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 0.85em; }
+    .stats { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    .stat { background: #f0f4fa; border-radius: 8px; padding: 10px; flex: 1; min-width: 120px; text-align: center; }
+    .stat .num { font-size: 1.3em; font-weight: bold; color: #1e3c72; }
+    .stat .lbl { font-size: 0.75em; color: #666; }
+    .error { color: #c0392b; margin-top: 10px; font-size: 0.9em; }
+    .chart-container { position: relative; height: 350px; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>⛽ Registro de Consumo de Combustible</h1>
+
+    <!-- REGISTRO DE VEHÍCULO -->
+    <div class="card">
+        <h2>🚗 Registrar Vehículo</h2>
+        <label>Placa del vehículo:</label>
+        <input type="text" id="placa" placeholder="Ej: ABC123" style="text-transform:uppercase">
+        <div class="row">
+            <div>
+                <label>Kilometraje inicial (km):</label>
+                <input type="number" id="kmInicial" placeholder="Ej: 45000" min="0">
+            </div>
+            <div>
+                <button onclick="registrarVehiculo()">Agregar Vehículo</button>
+            </div>
+        </div>
+        <p class="error" id="errVehiculo"></p>
+    </div>
+
+    <!-- SELECCIÓN Y LLENADO -->
+    <div class="card" id="panelLlenado" style="display:none">
+        <h2>⛽ Registrar Llenado</h2>
+        <label>Vehículo:</label>
+        <select id="vehiculoSelect"></select>
+        <div class="row">
+            <div>
+                <label>Galones llenados:</label>
+                <input type="number" id="galones" placeholder="Ej: 15.5" step="0.1" min="0.1">
+            </div>
+            <div>
+                <label>Kilometraje actual (km):</label>
+                <input type="number" id="kmActual" placeholder="Ej: 46500" min="0">
+            </div>
+        </div>
+        <button onclick="registrarLlenado()">Registrar Llenado</button>
+        <div class="result" id="resultado"></div>
+        <p class="error" id="errLlenado"></p>
+    </div>
+
+    <!-- GRÁFICA -->
+    <div class="card" id="panelGrafica" style="display:none">
+        <h2>📊 Últimos 10 Consumos y Distancias</h2>
+        <div class="stats" id="statsVehiculo"></div>
+        <div class="chart-container">
+            <canvas id="graficaConsumo"></canvas>
+        </div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div class="card" id="panelHistorial" style="display:none">
+        <h2>📋 Historial de Llenados</h2>
+        <div style="overflow-x:auto">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Galones</th>
+                        <th>Km Inicial</th>
+                        <th>Km Final</th>
+                        <th>Distancia</th>
+                        <th>km/galón</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="tablaHistorial"></tbody>
+            </table>
+        </div>
+        <button class="danger" onclick="eliminarVehiculo()">Eliminar Vehículo</button>
+    </div>
+</div>
+
+<script>
+let chart = null;
+let vehiculoSeleccionado = null;
+
+function getDatos() {
+    return JSON.parse(localStorage.getItem('combustibleApp') || '{}');
+}
+
+function saveDatos(datos) {
+    localStorage.setItem('combustibleApp', JSON.stringify(datos));
+}
+
+// ---- REGISTRAR VEHÍCULO ----
+function registrarVehiculo() {
+    const err = document.getElementById('errVehiculo');
+    err.textContent = '';
+    const placa = document.getElementById('placa').value.trim().toUpperCase();
+    const kmInicial = parseFloat(document.getElementById('kmInicial').value);
+
+    if (!placa) { err.textContent = '⚠️ Ingrese la placa del vehículo.'; return; }
+    if (isNaN(kmInicial) || kmInicial < 0) { err.textContent = '⚠️ Ingrese un kilometraje inicial válido.'; return; }
+
+    const datos = getDatos();
+    if (datos[placa]) {
+        err.textContent = '⚠️ La placa ya está registrada. Selecciónela en la lista.';
+        return;
+    }
+
+    datos[placa] = {
+        kmInicial,
+        llenados: []
+    };
+    saveDatos(datos);
+    document.getElementById('placa').value = '';
+    document.getElementById('kmInicial').value = '';
+    err.style.color = '#27ae60';
+    err.textContent = '✅ Vehículo registrado correctamente.';
+    actualizarPanel();
+    seleccionarVehiculo(placa);
+}
+
+// ---- REGISTRAR LLENADO ----
+function registrarLlenado() {
+    const err = document.getElementById('errLlenado');
+    const res = document.getElementById('resultado');
+    err.textContent = '';
+    res.style.display = 'none';
+
+    if (!vehiculoSeleccionado) { err.textContent = '⚠️ Seleccione un vehículo.'; return; }
+
+    const datos = getDatos();
+    const veh = datos[vehiculoSeleccionado];
+    const galones = parseFloat(document.getElementById('galones').value);
+    const kmActual = parseFloat(document.getElementById('kmActual').value);
+
+    if (isNaN(galones) || galones <= 0) { err.textContent = '⚠️ Ingrese una cantidad de galones válida.'; return; }
+    if (isNaN(kmActual) || kmActual <= 0) { err.textContent = '⚠️ Ingrese el kilometraje actual.'; return; }
+
+    // Kilometraje de referencia: último registrado o el inicial
+    const kmReferencia = veh.llenados.length > 0
+        ? veh.llenados[veh.llenados.length - 1].kmActual
+        : veh.kmInicial;
+
+    if (kmActual <= kmReferencia) {
+        err.textContent = `⚠️ El km actual debe ser mayor que el km del último registro (${kmReferencia}).`;
+        return;
+    }
+
+    const distancia = kmActual - kmReferencia;
+    const kmPorGalon = distancia / galones;
+
+    veh.llenados.push({
+        fecha: new Date().toLocaleString(),
+        galones,
+        kmInicialTramo: kmReferencia,
+        kmActual,
+        distancia,
+        kmPorGalon: Math.round(kmPorGalon * 100) / 100
+    });
+
+    saveDatos(datos);
+
+    res.style.display = 'block';
+    res.innerHTML = `
+        <strong>✅ Llenado registrado</strong><br>
+        Distancia recorrida: <strong>${distancia} km</strong> (${kmReferencia} → ${kmActual})<br>
+        Consumo: <strong>${galones} galones</strong><br>
+        Eficiencia: <strong>${kmPorGalon.toFixed(2)} km/galón</strong>
+    `;
+    document.getElementById('galones').value = '';
+    document.getElementById('kmActual').value = '';
+    actualizarPanel();
+}
+
+// ---- ELIMINAR VEHÍCULO ----
+function eliminarVehiculo() {
+    if (!vehiculoSeleccionado) return;
+    if (!confirm(`¿Eliminar el vehículo ${vehiculoSeleccionado} y todo su historial?`)) return;
+    const datos = getDatos();
+    delete datos[vehiculoSeleccionado];
+    saveDatos(datos);
+    vehiculoSeleccionado = null;
+    actualizarPanel();
+}
+
+// ---- ACTUALIZAR INTERFAZ ----
+function actualizarPanel() {
+    const datos = getDatos();
+    const vehiculos = Object.keys(datos);
+    const select = document.getElementById('vehiculoSelect');
+    const habilitar = vehiculos.length > 0;
+
+    document.getElementById('panelLlenado').style.display = habilitar ? 'block' : 'none';
+    document.getElementById('panelGrafica').style.display = habilitar ? 'block' : 'none';
+    document.getElementById('panelHistorial').style.display = habilitar ? 'block' : 'none';
+
+    const actual = select.value;
+    select.innerHTML = vehiculos.map(v => `<option value="${v}">${v} (inicial: ${datos[v].kmInicial} km)</option>`).join('');
+    if (vehiculos.includes(actual)) select.value = actual;
+
+    if (actual) seleccionarVehiculo(actual);
+}
+
+function seleccionarVehiculo(placa) {
+    vehiculoSeleccionado = placa;
+    document.getElementById('vehiculoSelect').value = placa;
+    actualizarHistorial();
+    actualizarGrafica();
+    actualizarStats();
+}
+
+// ---- HISTORIAL ----
+function actualizarHistorial() {
+    if (!vehiculoSeleccionado) return;
+    const datos = getDatos();
+    const llenados = datos[vehiculoSeleccionado].llenados;
+    const tbody = document.getElementById('tablaHistorial');
+
+    if (llenados.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#888">Aún no hay llenados registrados.</td></tr>';
+        return;
+    }
+
+    // Mostrar de más reciente a más antiguo
+    tbody.innerHTML = [...llenados].reverse().map((l, i) => {
+        const idx = llenados.length - 1 - i;
+        return `<tr>
+            <td>${l.fecha}</td>
+            <td>${l.galones}</td>
+            <td>${l.kmInicialTramo.toLocaleString()}</td>
+            <td>${l.kmActual.toLocaleString()}</td>
+            <td>${l.distancia.toLocaleString()} km</td>
+            <td><span class="badge">${l.kmPorGalon.toFixed(2)}</span></td>
+            <td><button onclick="eliminarLlenado(${idx})" style="padding:4px 10px;font-size:0.85em;margin:0">✖</button></td>
+        </tr>`;
+    }).join('');
+}
+
+function eliminarLlenado(idx) {
+    if (!confirm('¿Eliminar este registro de llenado?')) return;
+    const datos = getDatos();
+    datos[vehiculoSeleccionado].llenados.splice(idx, 1);
+    saveDatos(datos);
+    actualizarHistorial();
+    actualizarGrafica();
+    actualizarStats();
+}
+
+// ---- GRÁFICA ----
+function actualizarGrafica() {
+    if (!vehiculoSeleccionado) return;
+    const datos = getDatos();
+    const llenados = datos[vehiculoSeleccionado].llenados.slice(-10); // últimos 10
+
+    const canvas = document.getElementById('graficaConsumo');
+    const ctx = canvas.getContext('2d');
+
+    if (chart) chart.destroy();
+
+    chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: llenados.map((l, i) => `#${i + 1}`),
+            datasets: [
+                {
+                    type: 'bar',
+                    label: 'Distancia recorrida (km)',
+                    data: llenados.map(l => l.distancia),
+                    backgroundColor: 'rgba(42, 82, 152, 0.7)',
+                    yAxisID: 'y'
+                },
+                {
+                    type: 'line',
+                    label: 'Consumo (km/galón)',
+                    data: llenados.map(l => l.kmPorGalon),
+                    borderColor: '#e67e22',
+                    backgroundColor: '#e67e22',
+                    borderWidth: 3,
+                    pointRadius: 5,
+                    fill: false,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { position: 'left', title: { display: true, text: 'Distancia (km)' } },
+                y1: { position: 'right', title: { display: true, text: 'km/galón' }, grid: { drawOnChartArea: false } }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: items => {
+                            const i = items[0].dataIndex;
+                            return `${llenados[i].fecha}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ---- ESTADÍSTICAS ----
+function actualizarStats() {
+    if (!vehiculoSeleccionado) return;
+    const datos = getDatos();
+    const llenados = datos[vehiculoSeleccionado].llenados;
+    const div = document.getElementById('statsVehiculo');
+
+    if (llenados.length === 0) {
+        div.innerHTML = '<div class="stat"><div class="lbl">Registre llenados para ver estadísticas</div></div>';
+        return;
+    }
+
+    const totalGalones = llenados.reduce((s, l) => s + l.galones, 0);
+    const totalKm = llenados.reduce((s, l) => s + l.distancia, 0);
+    const promedio = (totalKm / totalGalones).toFixed(2);
+    const ultimo = llenados[llenados.length - 1];
+
+    div.innerHTML = `
+        <div class="stat"><div class="num">${llenados.length}</div><div class="lbl">Total llenados</div></div>
+        <div class="stat"><div class="num">${totalKm.toLocaleString()} km</div><div class="lbl">Km acumulados</div></div>
+        <div class="stat"><div class="num">${totalGalones.toFixed(1)}</div><div class="lbl">Galones totales</div></div>
+        <div class="stat"><div class="num">${promedio}</div><div class="lbl">Promedio km/galón</div></div>
+        <div class="stat"><div class="num">${ultimo.kmActual.toLocaleString()}</div><div class="lbl">Último km</div></div>
+    `;
+}
+
+// ---- EVENTOS ----
+document.getElementById('vehiculoSelect').addEventListener('change', e => seleccionarVehiculo(e.target.value));
+
+// Inicializar
+actualizarPanel();
+</script>
+</body>
+</html>
+
+							<script>
+                            	
+							</script>
+                        </body>
+                        </html>
+                    

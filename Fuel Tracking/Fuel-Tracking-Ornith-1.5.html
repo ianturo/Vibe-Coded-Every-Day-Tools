@@ -1,0 +1,1120 @@
+
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+							<style>
+								body {
+									background-color: white; /* Ensure the iframe has a white background */
+								}
+
+								
+							</style>
+                        </head>
+                        <body>
+                            <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⛽ Registro de Consumo de Combustible</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 25px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .card h2 {
+            color: #1e3c72;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.4rem;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        input, select {
+            padding: 11px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+
+        button {
+            padding: 11px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #2a5298;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1e3c72;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-edit {
+            background: #f39c12;
+            color: white;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+
+        .btn-edit:hover {
+            background: #d68910;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .car-list {
+            list-style: none;
+            margin-top: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .car-item {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .car-item:hover {
+            border-color: #2a5298;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .car-item.active {
+            border-color: #2a5298;
+            background: #f0f4fa;
+        }
+
+        .car-item .placa {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e3c72;
+            letter-spacing: 1px;
+        }
+
+        .car-item .info {
+            font-size: 0.8rem;
+            color: #777;
+        }
+
+        .car-item .delete-car {
+            align-self: flex-end;
+            background: transparent;
+            color: #e74c3c;
+            font-size: 0.75rem;
+            padding: 4px 8px;
+        }
+
+        .car-item .delete-car:hover {
+            background: #fdf0ef;
+        }
+
+        .selected-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .selected-header .placa-big {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1e3c72;
+            letter-spacing: 2px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 18px;
+            color: white;
+            text-align: center;
+        }
+
+        .stat-card:nth-child(2) { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .stat-card:nth-child(3) { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .stat-card:nth-child(4) { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .stat-card .label {
+            font-size: 0.8rem;
+            opacity: 0.95;
+            margin-top: 4px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 320px;
+            margin-top: 20px;
+        }
+
+        .records-list {
+            list-style: none;
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .record-item {
+            border: 1px solid #e0e0e0;
+            border-left: 5px solid #2a5298;
+            border-radius: 10px;
+            padding: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            align-items: center;
+        }
+
+        .record-item .rec-date {
+            font-weight: 700;
+            color: #1e3c72;
+            grid-column: 1 / -1;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+
+        .record-item .rec-data {
+            font-size: 0.85rem;
+        }
+
+        .record-item .rec-data strong {
+            display: block;
+            color: #777;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+        }
+
+        .record-item .rec-data .val {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .record-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 30px;
+            font-style: italic;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal h3 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+        }
+
+        .modal .form-group {
+            margin-bottom: 15px;
+        }
+
+        .modal .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #2a5298;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+        }
+
+        .hint {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 600px) {
+            header h1 { font-size: 1.4rem; }
+            .card { padding: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⛽ Registro de Consumo de Combustible</h1>
+            <p>Controla el consumo de combustible de tus vehículos de forma local</p>
+        </header>
+
+        <!-- SECCIÓN: VEHÍCULOS -->
+        <section class="card">
+            <h2>🚗 Vehículos</h2>
+            <form id="formCar">
+                <div class="form-group">
+                    <label for="placa">Placa</label>
+                    <input type="text" id="placa" placeholder="Ej: ABC-123" required>
+                </div>
+                <div class="form-group">
+                    <label for="kilometrajeInicial">Kilometraje inicial (km)</label>
+                    <input type="number" id="kilometrajeInicial" placeholder="Ej: 50000" step="0.1" required>
+                </div>
+                <button type="submit" class="btn-primary">➕ Registrar Vehículo</button>
+            </form>
+            <ul id="carList" class="car-list"></ul>
+        </section>
+
+        <!-- SECCIÓN: DETALLES DEL VEHÍCULO (oculto hasta seleccionar) -->
+        <section class="card" id="carDetails" style="display:none;">
+            <div class="selected-header">
+                <div>
+                    <h2 style="margin-bottom:5px;">📊 Detalles del Vehículo</h2>
+                    <div class="placa-big"><span id="selectedPlaca"></span></div>
+                </div>
+                <button class="btn-secondary" onclick="deseleccionar()">← Cambiar vehículo</button>
+            </div>
+
+            <form id="formConsumo">
+                <div class="form-group">
+                    <label for="galones">Galones llenados</label>
+                    <input type="number" id="galones" placeholder="Ej: 10" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="costoPorGalon">Costo por galón ($)</label>
+                    <input type="number" id="costoPorGalon" placeholder="Ej: 3.50" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="kilometrajeActual">Kilometraje actual (km)</label>
+                    <input type="number" id="kilometrajeActual" placeholder="Ej: 50350" step="0.1" required>
+                    <span class="hint" id="hintKm"></span>
+                </div>
+                <button type="submit" class="btn-primary">⛽ Registrar Llenado</button>
+            </form>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value" id="statDistancia">0</div>
+                    <div class="label">Distancia total (km)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="statKmg">0</div>
+                    <div class="label">Promedio km/gal</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="statCosto">$0</div>
+                    <div class="label">Costo total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="statLlenados">0</div>
+                    <div class="label">Llenados registrados</div>
+                </div>
+            </div>
+
+            <h2 style="margin-top:20px;">📈 Gráfica de últimos 10 consumos</h2>
+            <div class="chart-container">
+                <canvas id="chart"></canvas>
+            </div>
+
+            <h2 style="margin-top:20px;">🛠️ Historial de llenados</h2>
+            <ul id="recordList" class="records-list"></ul>
+        </section>
+
+        <!-- SECCIÓN: EXPORTAR / IMPORTAR -->
+        <section class="card">
+            <h2>💾 Respaldo de datos</h2>
+            <p class="hint">Tus datos se guardan localmente en este navegador. Realiza respaldos periódicos.</p>
+            <div class="toolbar">
+                <button class="btn-primary" onclick="exportData()">📤 Exportar datos</button>
+                <button class="btn-secondary" onclick="document.getElementById('importFile').click()">📥 Importar datos</button>
+                <input type="file" id="importFile" accept="application/json" style="display:none;" onchange="importData(this.files[0])">
+            </div>
+        </section>
+    </div>
+
+    <!-- MODAL: EDITAR REGISTRO -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h3>✏️ Editar Llenado</h3>
+            <input type="hidden" id="editId">
+            <div class="form-group">
+                <label for="editGalones">Galones llenados</label>
+                <input type="number" id="editGalones" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="editCosto">Costo por galón ($)</label>
+                <input type="number" id="editCosto" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="editKm">Kilometraje actual (km)</label>
+                <input type="number" id="editKm" step="0.1" required>
+            </div>
+            <div class="form-actions">
+                <button class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-primary" onclick="guardarEdicion()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  CONFIGURACIÓN DE LA BASE DE DATOS LOCAL (IndexedDB)
+        // ============================================================
+        let db;
+        let selectedCarId = null;
+        let chart = null;
+
+        const DB_NAME = 'consumoCombustibleDB';
+        const DB_VERSION = 1;
+
+        async function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onupgradeneeded = (event) => {
+                    const database = event.target.result;
+                    if (!database.objectStoreNames.contains('cars')) {
+                        database.createObjectStore('cars', { keyPath: 'id', autoIncrement: true });
+                    }
+                    if (!database.objectStoreNames.contains('consumos')) {
+                        const store = database.createObjectStore('consumos', { keyPath: 'id', autoIncrement: true });
+                        store.createIndex('carId', 'carId', { unique: false });
+                        store.createIndex('fecha', 'fecha', { unique: false });
+                    }
+                };
+
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                    renderCarList();
+                };
+
+                request.onerror = () => reject(request.target.error);
+            });
+        }
+
+        // ============================================================
+        //  FUNCIONES CRUD GENERALES
+        // ============================================================
+        function getAll(storeName) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction([storeName], 'readonly');
+                const store = tx.objectStore(storeName);
+                const request = store.getAll();
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.target.error);
+            });
+        }
+
+        function add(storeName, data) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction([storeName], 'readwrite');
+                const store = tx.objectStore(storeName);
+                const request = store.add(data);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.target.error);
+            });
+        }
+
+        function put(storeName, data) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction([storeName], 'readwrite');
+                const store = tx.objectStore(storeName);
+                const request = store.put(data);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.target.error);
+            });
+        }
+
+        function deleteItem(storeName, id) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction([storeName], 'readwrite');
+                const store = tx.objectStore(storeName);
+                const request = store.delete(id);
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.target.error);
+            });
+        }
+
+        // ============================================================
+        //  LÓGICA DE NEGOCIO
+        // ============================================================
+
+        // Recalcular las distancias y eficiencia de todos los llenados
+        // de un vehículo. Mantiene la consistencia de los datos.
+        async function recalculateCar(carId) {
+            const cars = await getAll('cars');
+            const car = cars.find(c => c.id === carId);
+            if (!car) return;
+
+            const allConsumos = await getAll('consumos');
+            const records = allConsumos
+                .filter(c => c.carId === carId)
+                .sort((a, b) => a.id - b.id); // orden cronológico por ID
+
+            const previousKm = car.kilometrajeInicial;
+            let prevKm = previousKm;
+
+            for (const record of records) {
+                const distance = record.kilometrajeActual - prevKm;
+                const kmPerGallon = record.galones > 0 ? distance / record.galones : 0;
+                const totalCost = record.galones * record.costoPorGalon;
+
+                record.kilometrajeAnterior = prevKm;
+                record.distanciaRecorrida = distance;
+                record.kmPorGalón = kmPerGallon;
+                record.costoTotal = totalCost;
+
+                await put('consumos', record);
+                prevKm = record.kilometrajeActual;
+            }
+        }
+
+        // ============================================================
+        //  INTERFAZ
+        // ============================================================
+
+        // Registrar un vehículo nuevo
+        document.getElementById('formCar').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const placa = document.getElementById('placa').value.trim().toUpperCase();
+            const kilometrajeInicial = parseFloat(document.getElementById('kilometrajeInicial').value);
+
+            if (!placa || isNaN(kilometrajeInicial)) {
+                alert('Por favor completa todos los campos correctamente.');
+                return;
+            }
+
+            const cars = await getAll('cars');
+            if (cars.some(c => c.placa === placa)) {
+                alert('Ya existe un vehículo con esa placa.');
+                return;
+            }
+
+            await add('cars', {
+                placa,
+                kilometrajeInicial,
+                createdAt: new Date().toISOString()
+            });
+
+            document.getElementById('formCar').reset();
+            document.getElementById('placa').focus();
+            renderCarList();
+            alert('Vehículo registrado correctamente.');
+        });
+
+        // Registrar un llenado de combustible
+        document.getElementById('formConsumo').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!selectedCarId) return;
+
+            const galones = parseFloat(document.getElementById('galones').value);
+            const costoPorGalon = parseFloat(document.getElementById('costoPorGalon').value);
+            const kilometrajeActual = parseFloat(document.getElementById('kilometrajeActual').value);
+
+            if (isNaN(galones) || galones <= 0 || isNaN(costoPorGalon) || costoPorGalon <= 0 || isNaN(kilometrajeActual)) {
+                alert('Por favor completa todos los campos con valores válidos.');
+                return;
+            }
+
+            const cars = await getAll('cars');
+            const car = cars.find(c => c.id === selectedCarId);
+
+            // Verificar que el kilometraje no sea menor al inicial
+            if (kilometrajeActual < car.kilometrajeInicial) {
+                alert(`El kilometraje actual no puede ser menor al inicial (${car.kilometrajeInicial} km).`);
+                return;
+            }
+
+            await add('consumos', {
+                carId: selectedCarId,
+                galones,
+                costoPorGalon,
+                kilometrajeActual,
+                kilometrajeAnterior: null,   // se calcula en el recálculo
+                distanciaRecorrida: null,
+                kmPorGalón: null,
+                costoTotal: null,
+                fecha: new Date().toISOString()
+            });
+
+            await recalculateCar(selectedCarId);
+            document.getElementById('formConsumo').reset();
+            document.getElementById('kilometrajeActual').focus();
+            renderRecords();
+            renderStats();
+            renderChart();
+            alert('Llenado registrado correctamente.');
+        });
+
+        // Renderizar la lista de vehículos
+        async function renderCarList() {
+            const list = document.getElementById('carList');
+            const cars = await getAll('cars');
+            const consumos = await getAll('consumos');
+
+            if (cars.length === 0) {
+                list.innerHTML = '<p class="empty-state">Aún no hay vehículos registrados. Agrega uno arriba.</p>';
+                return;
+            }
+
+            list.innerHTML = '';
+            for (const car of cars) {
+                const count = consumos.filter(c => c.carId === car.id).length;
+                const li = document.createElement('li');
+                li.className = 'car-item' + (car.id === selectedCarId ? ' active' : '');
+                li.innerHTML = `
+                    <div class="placa">${car.placa}</div>
+                    <div class="info">📍 ${car.kilometrajeInicial.toLocaleString()} km inicial</div>
+                    <div class="info">⛽ ${count} llenado(s)</div>
+                    <button class="delete-car" data-id="${car.id}">🗑️ Eliminar</button>
+                `;
+                li.querySelector('.delete-car').addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    await eliminarCar(car.id);
+                });
+                li.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('delete-car')) return;
+                    seleccionarCar(car.id);
+                });
+                list.appendChild(li);
+            }
+        }
+
+        // Eliminar un vehículo y sus registros
+        async function eliminarCar(carId) {
+            if (!confirm('¿Eliminar este vehículo y todos sus registros? Esta acción no se puede deshacer.')) {
+                return;
+            }
+            const consumos = await getAll('consumos');
+            const toDelete = consumos.filter(c => c.carId === carId);
+            for (const c of toDelete) {
+                await deleteItem('consumos', c.id);
+            }
+            await deleteItem('cars', carId);
+            if (selectedCarId === carId) {
+                deseleccionar();
+            }
+            renderCarList();
+        }
+
+        // Seleccionar un vehículo
+        async function seleccionarCar(carId) {
+            selectedCarId = carId;
+            const cars = await getAll('cars');
+            const car = cars.find(c => c.id === carId);
+
+            document.getElementById('carDetails').style.display = 'block';
+            document.getElementById('selectedPlaca').textContent = car.placa;
+            document.getElementById('hintKm').textContent = 
+                `Kilometraje inicial: ${car.kilometrajeInicial.toLocaleString()} km`;
+
+            document.getElementById('carDetails').scrollIntoView({ behavior: 'smooth' });
+            renderCarList();
+            renderRecords();
+            renderStats();
+            renderChart();
+        }
+
+        // Deseleccionar vehículo
+        function deseleccionar() {
+            selectedCarId = null;
+            document.getElementById('carDetails').style.display = 'none';
+            renderCarList();
+        }
+
+        // Renderizar el historial de llenados
+        async function renderRecords() {
+            const list = document.getElementById('recordList');
+            if (!selectedCarId) return;
+
+            const consumos = await getAll('consumos');
+            let records = consumos.filter(c => c.carId === selectedCarId);
+            records.sort((a, b) => a.id - b.id);
+
+            if (records.length === 0) {
+                list.innerHTML = '<p class="empty-state">No hay llenados registrados todavía.</p>';
+                return;
+            }
+
+            list.innerHTML = '';
+            // Mostrar del más reciente al más antiguo
+            for (let i = records.length - 1; i >= 0; i--) {
+                const r = records[i];
+                const li = document.createElement('li');
+                li.className = 'record-item';
+                const fecha = new Date(r.fecha).toLocaleString('es-CO', {
+                    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+                li.innerHTML = `
+                    <div class="rec-date">🛣️ ${fecha}</div>
+                    <div class="rec-data">
+                        <strong>Galones</strong>
+                        <span class="val">${r.galones} gal</span>
+                    </div>
+                    <div class="rec-data">
+                        <strong>Costo/gal</strong>
+                        <span class="val">$${r.costoPorGalon.toLocaleString()}</span>
+                    </div>
+                    <div class="rec-data">
+                        <strong>Costo total</strong>
+                        <span class="val">$${r.costoTotal.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
+                    </div>
+                    <div class="rec-data">
+                        <strong>Km anterior</strong>
+                        <span class="val">${r.kilometrajeAnterior?.toLocaleString()} km</span>
+                    </div>
+                    <div class="rec-data">
+                        <strong>Km actual</strong>
+                        <span class="val">${r.kilometrajeActual.toLocaleString()} km</span>
+                    </div>
+                    <div class="rec-data">
+                        <strong>Distancia</strong>
+                        <span class="val">${r.distanciaRecorrida.toLocaleString(undefined, {maximumFractionDigits: 1})} km</span>
+                    </div>
+                    <div class="rec-data">
+                        <strong>Eficiencia</strong>
+                        <span class="val">${r.kmPorGalón?.toFixed(2)} km/gal</span>
+                    </div>
+                    <div class="record-actions">
+                        <button class="btn-edit" data-id="${r.id}">✏️ Editar</button>
+                        <button class="btn-danger" data-id="${r.id}">🗑️ Eliminar</button>
+                    </div>
+                `;
+                list.appendChild(li);
+            }
+
+            // Eventos de botones
+            list.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.addEventListener('click', () => abrirModal(parseInt(btn.dataset.id)));
+            });
+            list.querySelectorAll('.btn-danger').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (confirm('¿Eliminar este llenado?')) {
+                        await deleteItem('consumos', parseInt(btn.dataset.id));
+                        await recalculateCar(selectedCarId);
+                        renderRecords();
+                        renderStats();
+                        renderChart();
+                    }
+                });
+            });
+        }
+
+        // Renderizar estadísticas
+        async function renderStats() {
+            if (!selectedCarId) return;
+            const consumos = await getAll('consumos');
+            const records = consumos.filter(c => c.carId === selectedCarId);
+
+            const totalDistancia = records.reduce((sum, r) => sum + (r.distanciaRecorrida || 0), 0);
+            const totalCosto = records.reduce((sum, r) => sum + (r.costoTotal || 0), 0);
+            const totalGalones = records.reduce((sum, r) => sum + (r.galones || 0), 0);
+            const avgKmGal = totalGalones > 0 ? totalDistancia / totalGalones : 0;
+
+            document.getElementById('statDistancia').textContent = totalDistancia.toLocaleString(undefined, {maximumFractionDigits: 1});
+            document.getElementById('statKmg').textContent = avgKmGal.toFixed(1);
+            document.getElementById('statCosto').textContent = '$' + totalCosto.toLocaleString(undefined, {maximumFractionDigits: 0});
+            document.getElementById('statLlenados').textContent = records.length;
+        }
+
+        // Renderizar la gráfica
+        async function renderChart() {
+            if (!selectedCarId) return;
+            const consumos = await getAll('consumos');
+            let records = consumos.filter(c => c.carId === selectedCarId);
+            records.sort((a, b) => a.id - b.id);
+
+            // Tomar los últimos 10
+            const last10 = records.slice(-10);
+            const labels = last10.map((r, i) => `Llenado ${i + 1}`);
+            const distancias = last10.map(r => r.distanciaRecorrida || 0);
+            const kmg = last10.map(r => r.kmPorGalón || 0);
+
+            const ctx = document.getElementById('chart').getContext('2d');
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            if (last10.length === 0) {
+                chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: { labels: ['Sin datos'], datasets: [] },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+                return;
+            }
+
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Distancia recorrida (km)',
+                            data: distancias,
+                            backgroundColor: 'rgba(42, 82, 152, 0.7)',
+                            borderColor: 'rgba(42, 82, 152, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Eficiencia (km/gal)',
+                            data: kmg,
+                            type: 'line',
+                            borderColor: '#f39c12',
+                            backgroundColor: 'rgba(243, 156, 18, 0.2)',
+                            borderWidth: 3,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#f39c12',
+                            tension: 0.3,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Últimos 10 consumos'
+                        },
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Distancia (km)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Eficiencia (km/gal)'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ============================================================
+        //  MODAL DE EDICIÓN
+        // ============================================================
+        function abrirModal(id) {
+            getAll('consumos').then(all => {
+                const record = all.find(c => c.id === id);
+                if (!record) return;
+                document.getElementById('editId').value = record.id;
+                document.getElementById('editGalones').value = record.galones;
+                document.getElementById('editCosto').value = record.costoPorGalon;
+                document.getElementById('editKm').value = record.kilometrajeActual;
+                document.getElementById('modalOverlay').classList.add('active');
+            });
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        async function guardarEdicion() {
+            const id = parseInt(document.getElementById('editId').value);
+            const galones = parseFloat(document.getElementById('editGalones').value);
+            const costo = parseFloat(document.getElementById('editCosto').value);
+            const km = parseFloat(document.getElementById('editKm').value);
+
+            if (isNaN(galones) || galones <= 0 || isNaN(costo) || costo <= 0 || isNaN(km)) {
+                alert('Ingresa valores válidos.');
+                return;
+            }
+
+            const all = await getAll('consumos');
+            const record = all.find(c => c.id === id);
+            if (!record) return;
+
+            record.galones = galones;
+            record.costoPorGalon = costo;
+            record.kilometrajeActual = km;
+
+            await put('consumos', record);
+            await recalculateCar(selectedCarId);
+
+            cerrarModal();
+            renderRecords();
+            renderStats();
+            renderChart();
+            alert('Cambios guardados.');
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('modalOverlay').addEventListener('click', (e) => {
+            if (e.target.id === 'modalOverlay') cerrarModal();
+        });
+
+        // ============================================================
+        //  EXPORTAR / IMPORTAR
+        // ============================================================
+        async function exportData() {
+            const cars = await getAll('cars');
+            const consumos = await getAll('consumos');
+
+            if (cars.length === 0 && consumos.length === 0) {
+                alert('No hay datos para exportar.');
+                return;
+            }
+
+            const data = {
+                app: 'Registro de Consumo de Combustible',
+                version: 1,
+                exportDate: new Date().toISOString(),
+                cars,
+                consumos
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `respaldo_consumo_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        async function importData(file) {
+            if (!file) return;
+
+            if (!confirm('Esto REEMPLAZARÁ todos los datos actuales. ¿Deseas continuar?')) {
+                document.getElementById('importFile').value = '';
+                return;
+            }
+
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+
+                if (!data.cars || !data.consumos) {
+                    alert('Archivo inválido: no contiene la estructura correcta.');
+                    document.getElementById('importFile').value = '';
+                    return;
+                }
+
+                // Limpiar bases de datos existentes
+                const existingCars = await getAll('cars');
+                for (const c of existingCars) await deleteItem('cars', c.id);
+
+                const existingConsumos = await getAll('consumos');
+                for (const c of existingConsumos) await deleteItem('consumos', c.id);
+
+                // Cargar datos importados
+                for (const car of data.cars) {
+                    const { id, ...carData } = car;
+                    await add('cars', carData);
+                }
+                for (const c of data.consumos) {
+                    const { id, ...consumoData } = c;
+                    await add('consumos', consumoData);
+                }
+
+                // Recalcular para asegurar consistencia
+                const cars = await getAll('cars');
+                for (const car of cars) {
+                    await recalculateCar(car.id);
+                }
+
+                alert('Datos importados correctamente.');
+                selectedCarId = null;
+                document.getElementById('carDetails').style.display = 'none';
+                document.getElementById('importFile').value = '';
+                renderCarList();
+
+            } catch (err) {
+                console.error(err);
+                alert('Error al importar el archivo: ' + err.message);
+                document.getElementById('importFile').value = '';
+            }
+        }
+
+        // ============================================================
+        //  INICIALIZACIÓN
+        // ============================================================
+        initDB().catch(err => {
+            console.error('Error al inicializar la base de datos:', err);
+            alert('No se pudo abrir la base de datos local. Verifica que tu navegador lo soporte.');
+        });
+    </script>
+</body>
+</html>
+
+							<script>
+                            	
+							</script>
+                        </body>
+                        </html>
+                    
